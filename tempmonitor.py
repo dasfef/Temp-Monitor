@@ -26,7 +26,7 @@ class MyApp(QWidget) :  # 클래스 정의
         # rc('font', family=font_name)   
         
         self.conn = pymysql.connect(host='127.0.0.1' , user='root', password='bigdatar', db='work', charset='utf8')
-        self.cursor = self.conn.cursor()
+        # self.cursor = self.conn.cursor()
         
         
         self.btnOpen = QPushButton('불러오기')
@@ -51,14 +51,31 @@ class MyApp(QWidget) :  # 클래스 정의
         self.fig1 = plt.Figure(figsize=(7,3))
         self.fig2 = plt.Figure(figsize=(7,3))
         self.fig3 = plt.Figure(figsize=(7,3))
+        self.fig4 = plt.Figure(figsize=(7,3))
+        self.fig5 = plt.Figure(figsize=(7,3))
+        self.fig6 = plt.Figure(figsize=(7,3))
         self.canvas1 = FigureCanvas(self.fig1)  # 그래프 그리기 영역
         self.canvas2 = FigureCanvas(self.fig2)  # 그래프 그리기 영역
         self.canvas3 = FigureCanvas(self.fig3)  # 그래프 그리기 영역
-        
+        self.canvas4 = FigureCanvas(self.fig4)  # 그래프 그리기 영역
+        self.canvas5 = FigureCanvas(self.fig5)  # 그래프 그리기 영역
+        self.canvas6 = FigureCanvas(self.fig6)  # 그래프 그리기 영역
 
         layout = QHBoxLayout() # 상자 배치관리자(최상위)
         layoutMonitor = QVBoxLayout()
         layoutML = QVBoxLayout()
+
+        # Grid Layout
+        # layoutML = QGridLayout()
+        # layoutML.addLayout(layoutTemp1, 0, 0)
+        # layoutML.addLayout(layoutTemp2, 0, 1)
+        # layoutML.addLayout(layoutTemp3, 1, 0)
+        # layoutML.addLayout(layoutTemp4, 1, 1)
+        # layoutML.addLayout(layoutTemp5, 2, 0)
+        # layoutML.addLayout(layoutTemp6, 2, 1)
+
+        # layoutML2 = QHBoxLayout()
+        # layoutML3 = QHBoxLayout()
         
         # 왼쪽 레이아웃
         layoutMenu = QHBoxLayout()
@@ -68,33 +85,55 @@ class MyApp(QWidget) :  # 클래스 정의
         layoutMenu.addWidget(self.btnOpen)
         layoutMenu.addWidget(self.btnSave)
         
-        layoutTbl.addWidget(self.tbltemporg)
-        layoutTbl.addWidget(self.txtLog)
+        layoutTbl.addWidget(self.tbltemporg, stretch = 2)
+        layoutTbl.addWidget(self.txtLog, stretch = 1)
         layoutGraph.addWidget(self.canvas)
         
         layoutMonitor.addLayout(layoutMenu)
-        layoutMonitor.addLayout(layoutTbl)
-        layoutMonitor.addLayout(layoutGraph)
+        layoutMonitor.addLayout(layoutTbl, stretch = 2)
+        layoutMonitor.addLayout(layoutGraph, stretch = 2)
         
         # 오른쪽 레이아웃
-        layoutTemp1 = QVBoxLayout()
-        layoutTemp2 = QVBoxLayout()
-        layoutTemp3 = QVBoxLayout()
-        
+
+        layoutTemp1 = QHBoxLayout()
+        layoutTemp2 = QHBoxLayout()
+        layoutTemp3 = QHBoxLayout()
+
         layoutTemp1.addWidget(self.canvas1)
-        layoutTemp2.addWidget(self.canvas2)
-        layoutTemp3.addWidget(self.canvas3)
+        layoutTemp1.addWidget(self.canvas2)
+        layoutTemp2.addWidget(self.canvas3)
+        layoutTemp2.addWidget(self.canvas4)
+        layoutTemp3.addWidget(self.canvas5)
+        layoutTemp3.addWidget(self.canvas6)
+
+
+        # layoutTemp4 = QHBoxLayout()
+        # layoutTemp5 = QHBoxLayout()
+        # layoutTemp6 = QHBoxLayout()
+        
+        # layoutTemp1.addWidget(self.canvas1)
+        # layoutTemp2.addWidget(self.canvas2)
+        # layoutTemp3.addWidget(self.canvas3)
+
+        # layoutTemp4.addWidget(self.canvas4)
+        # layoutTemp5.addWidget(self.canvas5)
+        # layoutTemp6.addWidget(self.canvas6)
         
         layoutML.addLayout(layoutTemp1)
         layoutML.addLayout(layoutTemp2)
         layoutML.addLayout(layoutTemp3)
+
+        # layoutML2.addLayout(layoutTemp2)
+        # layoutML2.addLayout(layoutTemp4)
+        # layoutML2.addLayout(layoutTemp6)
         
-        layout.addLayout(layoutMonitor)
-        layout.addLayout(layoutML)
+        layout.addLayout(layoutMonitor, stretch = 2)
+        layout.addLayout(layoutML, stretch = 2)
+        # layout.addLayout(layoutML2, stretch = 1)
         
         self.setLayout(layout)
         self.setWindowTitle('TempMonitor')  # 윈도우 제목
-        self.setGeometry(10, 30, 1600, 900)  # 좌상단좌표, 너비, 높이
+        self.setGeometry(0, 30, 1600, 900)  # 좌상단좌표, 너비, 높이
         self.show()  # 윈도우 보이기
         
         self.dataProcess()
@@ -103,6 +142,9 @@ class MyApp(QWidget) :  # 클래스 정의
         self.graph1()
         self.graph2()
         self.graph3()
+        self.graph4()
+        self.graph5()
+        self.graph6()
 
         self.timer = QTimer(self)           # 타이머 객체 생성
         self.timer.start(60000)             # () 안 시간단위 : ms / 1000ms = 1sec
@@ -127,10 +169,12 @@ class MyApp(QWidget) :  # 클래스 정의
         
     def dataProcess(self) :
         # 데이터베이스 테이블을 읽어 전역 리스트에 저장
+        # conn = pymysql.connect(host='127.0.0.1' , user='root', password='bigdatar', db='work', charset='utf8')
+        cursor = self.conn.cursor()
         query = 'select * from tbldata order by s_measuretime desc limit 100'
-        self.cursor.execute(query)  # 쿼리 실행
-        result = self.cursor.fetchall()  # 테이블 전체 저장
-        rowCount = self.cursor.rowcount  # 행 개수 추출
+        cursor.execute(query)  # 쿼리 실행
+        result = cursor.fetchall()  # 테이블 전체 저장
+        rowCount = cursor.rowcount  # 행 개수 추출
         self.df = [[0] * 7 for i in range(rowCount)] # 2차원 리스트(1행에 7개의 열이 0으로 초기화)
         
         count = 0
@@ -142,11 +186,20 @@ class MyApp(QWidget) :  # 클래스 정의
         log_df1 = 'temp1 value : %f'% (self.df[0][1])      # temp1 원본(가장최근)
         log_df2 = 'temp2 value : %f'% (self.df[0][2])      # temp2 원본(가장최근)
         log_df3 = 'temp3 value : %f'% (self.df[0][3])      # temp3 원본(가장최근)
+        log_df4 = 'temp4 value : %f'% (self.df[0][4])      # temp3 원본(가장최근)
+        log_df5 = 'temp5 value : %f'% (self.df[0][5])      # temp3 원본(가장최근)
+        log_df6 = 'temp6 value : %f'% (self.df[0][6])      # temp3 원본(가장최근)
+        self.txtLog.append(str(self.df[0][0]))
         self.txtLog.append(log_df1)
         self.txtLog.append(log_df2)
         self.txtLog.append(log_df3)
+        self.txtLog.append(log_df4)
+        self.txtLog.append(log_df5)
+        self.txtLog.append(log_df6)
+
         
-        # rmsx 데이터셋을 저장 후 model 과 비교 (120 타임 = 2시간)
+        
+        # temp1 데이터셋을 저장 후 model 과 비교 (120 타임 = 2시간)
         df1 = [k[1] for k in self.df[0:60]]       # 0, 1, 2, 3 열 중에서 1열 리스트(rmsx 데이터 열)
         final_df1 = np.array(df1)                  # numpy 배열로 변환 : 연산시 다이렉트 연산 가능(df1 + 3 : 불가 / final_df1 + 3 과 같은 다이렉트 연산 가능)
         final_df1 = final_df1.reshape(-1, 1)        # 차원 하나를 더 증가시켜줌
@@ -185,28 +238,90 @@ class MyApp(QWidget) :  # 클래스 정의
         self.txtLog.append(mape_temp2_str)
         #----------------------------------------------------
         
-        # rmsz 데이터셋을 저장하여 model 과 비교(120 타임)
-        # df3 = [k[3] for k in self.df[0:60]]  # 0,1,2,3 열 중에서 1열 리스트
-        # final_df3 = np.array(df3)  # 넘파이배열로 변환
-        # final_df3 = final_df3.reshape(-1, 1)  # 차원 증가
-        # scaler_df3 = MinMaxScaler(feature_range=(0,1)) # 정규화 객체 생성
-        # scaled_df3 = scaler_df3.fit_transform(final_df3)  # 정규화
-        # x_test_df3 = self.getDataSetX(scaled_df3, 0, scaled_df3.shape[0] - 1, 10)
-        # y_test_df3 = self.getDataSetY(scaled_df3, 0, scaled_df3.shape[0] - 1, 10)
-
+        # temp3 데이터셋을 저장하여 model 과 비교(120 타임)
+        df3 = [k[3] for k in self.df[0:60]]  # 0,1,2,3 열 중에서 1열 리스트
+        final_df3 = np.array(df3)  # 넘파이배열로 변환
+        final_df3 = final_df3.reshape(-1, 1)  # 차원 증가
+        scaler_df3 = MinMaxScaler(feature_range=(0,1)) # 정규화 객체 생성
+        scaled_df3 = scaler_df3.fit_transform(final_df3)  # 정규화
+        x_test_df3 = self.getDataSetX(scaled_df3, 0, scaled_df3.shape[0] - 1, 10)
+        y_test_df3 = self.getDataSetY(scaled_df3, 0, scaled_df3.shape[0] - 1, 10)
         
-        
-        # self.lstm_model_temp3 = tf.keras.models.load_model('/Users/dasfef/documents/AI/lstm_model_temp3.h5')  # lstm model 로드
-        # self.pred_s_temp3 = self.lstm_model_temp3.predict(x_test_df3)
-        # # 예측과 원본 비교
-        # self.pred_s_temp3 = scaler_df3.inverse_transform(self.pred_s_temp3) # 정규화 역변환
-        # self.test_df3 = final_df3[0: , :]
-        # mape_temp3 = np.mean(np.abs(self.test_df3[10:] - self.pred_s_temp3) / self.test_df3[10:]) * 100  # 1개 발생됨
-        # mape_temp3_str = 'temp3 mape : %f' % (mape_temp3)
-        # self.txtLog.append(mape_temp3_str)
+        self.lstm_model_temp3 = tf.keras.models.load_model('/Users/dasfef/documents/AI/lstm_model_temp3.h5')  # lstm model 로드
+        self.pred_s_temp3 = self.lstm_model_temp3.predict(x_test_df3)
+        # 예측과 원본 비교
+        self.pred_s_temp3 = scaler_df3.inverse_transform(self.pred_s_temp3) # 정규화 역변환
+        self.test_df3 = final_df3[0: , :]
+        mape_temp3 = np.mean(np.abs(self.test_df3[10:] - self.pred_s_temp3) / self.test_df3[10:]) * 100  # 1개 발생됨
+        mape_temp3_str = 'temp3 mape : %f' % (mape_temp3)
+        self.txtLog.append(mape_temp3_str)
         
         #----------------------------------------------------
 
+        # temp4 데이터셋을 저장하여 model 과 비교(120 타임)
+        df4 = [k[4] for k in self.df[0:60]]  # 0,1,2,3 열 중에서 1열 리스트
+        final_df4 = np.array(df4)  # 넘파이배열로 변환
+        final_df4 = final_df4.reshape(-1, 1)  # 차원 증가
+        scaler_df4 = MinMaxScaler(feature_range=(0,1)) # 정규화 객체 생성
+        scaled_df4 = scaler_df4.fit_transform(final_df4)  # 정규화
+        x_test_df4 = self.getDataSetX(scaled_df4, 0, scaled_df4.shape[0] - 1, 10)
+        y_test_df4 = self.getDataSetY(scaled_df4, 0, scaled_df4.shape[0] - 1, 10)
+        
+        self.lstm_model_temp4 = tf.keras.models.load_model('/Users/dasfef/documents/AI/lstm_model_temp4.h5')  # lstm model 로드
+        self.pred_s_temp4 = self.lstm_model_temp4.predict(x_test_df4)
+        # 예측과 원본 비교
+        self.pred_s_temp4 = scaler_df4.inverse_transform(self.pred_s_temp4) # 정규화 역변환
+        self.test_df4 = final_df4[0: , :]
+        mape_temp4 = np.mean(np.abs(self.test_df4[10:] - self.pred_s_temp4) / self.test_df4[10:]) * 100  # 1개 발생됨
+        mape_temp4_str = 'temp4 mape : %f' % (mape_temp4)
+        self.txtLog.append(mape_temp4_str)
+        
+        #----------------------------------------------------
+
+        # temp5 데이터셋을 저장하여 model 과 비교(120 타임)
+        df5 = [k[5] for k in self.df[0:60]]  # 0,1,2,3 열 중에서 1열 리스트
+        final_df5 = np.array(df5)  # 넘파이배열로 변환
+        final_df5 = final_df5.reshape(-1, 1)  # 차원 증가
+        scaler_df5 = MinMaxScaler(feature_range=(0,1)) # 정규화 객체 생성
+        scaled_df5 = scaler_df5.fit_transform(final_df5)  # 정규화
+        x_test_df5 = self.getDataSetX(scaled_df5, 0, scaled_df5.shape[0] - 1, 10)
+        y_test_df5 = self.getDataSetY(scaled_df5, 0, scaled_df5.shape[0] - 1, 10)
+        
+        self.lstm_model_temp5 = tf.keras.models.load_model('/Users/dasfef/documents/AI/lstm_model_temp5.h5')  # lstm model 로드
+        self.pred_s_temp5 = self.lstm_model_temp5.predict(x_test_df5)
+        # 예측과 원본 비교
+        self.pred_s_temp5 = scaler_df5.inverse_transform(self.pred_s_temp5) # 정규화 역변환
+        self.test_df5 = final_df5[0: , :]
+        mape_temp5 = np.mean(np.abs(self.test_df5[10:] - self.pred_s_temp5) / self.test_df5[10:]) * 100  # 1개 발생됨
+        mape_temp5_str = 'temp5 mape : %f' % (mape_temp5)
+        self.txtLog.append(mape_temp5_str)
+        
+        #----------------------------------------------------
+
+        # temp6 데이터셋을 저장하여 model 과 비교(120 타임)
+        df6 = [k[6] for k in self.df[0:60]]  # 0,1,2,3 열 중에서 1열 리스트
+        final_df6 = np.array(df6)  # 넘파이배열로 변환
+        final_df6 = final_df6.reshape(-1, 1)  # 차원 증가
+        scaler_df6 = MinMaxScaler(feature_range=(0,1)) # 정규화 객체 생성
+        scaled_df6 = scaler_df6.fit_transform(final_df6)  # 정규화
+        x_test_df6 = self.getDataSetX(scaled_df6, 0, scaled_df6.shape[0] - 1, 10)
+        y_test_df6 = self.getDataSetY(scaled_df6, 0, scaled_df6.shape[0] - 1, 10)
+        
+        self.lstm_model_temp6 = tf.keras.models.load_model('/Users/dasfef/documents/AI/lstm_model_temp6.h5')  # lstm model 로드
+        self.pred_s_temp6 = self.lstm_model_temp6.predict(x_test_df6)
+        # 예측과 원본 비교
+        self.pred_s_temp6 = scaler_df6.inverse_transform(self.pred_s_temp6) # 정규화 역변환
+        self.test_df6 = final_df6[0: , :]
+        mape_temp6 = np.mean(np.abs(self.test_df6[10:] - self.pred_s_temp6) / self.test_df6[10:]) * 100  # 1개 발생됨
+        mape_temp6_str = 'temp6 mape : %f' % (mape_temp6)
+        self.txtLog.append(mape_temp6_str)
+        
+        #----------------------------------------------------
+        cursor.close()
+        self.conn.commit()
+        # conn.close()
+        
+        
     def tblDisplay(self) :
         for i in range(100) :
             for j in range(7) :
@@ -221,14 +336,20 @@ class MyApp(QWidget) :  # 클래스 정의
         df1 = [k[1] for k in self.df]
         df2 = [k[2] for k in self.df]
         df3 = [k[3] for k in self.df]
-        df1.reverse()
-        df2.reverse()
-        df3.reverse()
+        df4 = [k[4] for k in self.df]
+        df5 = [k[5] for k in self.df]
+        df6 = [k[6] for k in self.df]
+        # df1.reverse()
+        # df2.reverse()
+        # df3.reverse()
 
 
         ax1.plot(df1, label='temp1')
         ax1.plot(df2, label='temp2')
         ax1.plot(df3, label='temp3')
+        ax1.plot(df4, label='temp4')
+        ax1.plot(df5, label='temp5')
+        ax1.plot(df6, label='temp6')
 
         ax1.legend()
         
@@ -240,7 +361,7 @@ class MyApp(QWidget) :  # 클래스 정의
         ax1 = self.fig1.add_subplot(111)  # 그래프 영역이 1개일 경우
         ax1.clear() # 그래프 영역 초기화(subplot 각각 필요)
         df1 = [k[1] for k in self.df] # 2차원 리스트에서 rmsx 추출
-        npdf1 = np.array(df1)  # 넘파이 배열로 변환
+        # npdf1 = np.array(df1)  # 넘파이 배열로 변환
         ax1.plot(self.test_df1[10:, 0], label='temp1')
         ax1.plot(self.pred_s_temp1, label='pred')
         
@@ -254,7 +375,7 @@ class MyApp(QWidget) :  # 클래스 정의
         ax1 = self.fig2.add_subplot(111)  # 그래프 영역이 1개일 경우
         ax1.clear() # 그래프 영역 초기화(subplot 각각 필요)
         df2 = [k[2] for k in self.df] # 2차원 리스트에서 rmsx 추출
-        npdf2 = np.array(df2)  # 넘파이 배열로 변환
+        # npdf2 = np.array(df2)  # 넘파이 배열로 변환
         ax1.plot(self.test_df2[10:, 0], label='temp2')
         ax1.plot(self.pred_s_temp2, label='pred')
         # ax1.plot(npdf2[880:], label='rmsy')
@@ -268,15 +389,56 @@ class MyApp(QWidget) :  # 클래스 정의
         
         ax1 = self.fig3.add_subplot(111)  # 그래프 영역이 1개일 경우
         ax1.clear() # 그래프 영역 초기화(subplot 각각 필요)
-        # df3 = [k[3] for k in self.df] # 2차원 리스트에서 rmsx 추출
-        # ax1.plot(self.test_df3[10:, 0], label='temp3')
-        # ax1.plot(self.pred_s_temp3, label='pred')
+        df3 = [k[3] for k in self.df] # 2차원 리스트에서 rmsx 추출
+        ax1.plot(self.test_df3[10:, 0], label='temp3')
+        ax1.plot(self.pred_s_temp3, label='pred')
         # npdf3 = np.array(df3)  # 넘파이 배열로 변환
         # ax1.plot(npdf3[880:], label='rmsz')
         ax1.legend()
         
         self.canvas3.draw()  # 그래프 다시 그리기                        
-            
+
+    def graph4(self) :
+        self.fig4.clear()  # 그래프 영역 초기화
+        
+        ax1 = self.fig4.add_subplot(111)  # 그래프 영역이 1개일 경우
+        ax1.clear() # 그래프 영역 초기화(subplot 각각 필요)
+        df3 = [k[3] for k in self.df] # 2차원 리스트에서 rmsx 추출
+        ax1.plot(self.test_df4[10:, 0], label='temp4')
+        ax1.plot(self.pred_s_temp4, label='pred')
+        # npdf3 = np.array(df3)  # 넘파이 배열로 변환
+        # ax1.plot(npdf3[880:], label='rmsz')
+        ax1.legend()
+        
+        self.canvas4.draw()  # 그래프 다시 그리기   
+
+    def graph5(self) :
+        self.fig5.clear()  # 그래프 영역 초기화
+        
+        ax1 = self.fig5.add_subplot(111)  # 그래프 영역이 1개일 경우
+        ax1.clear() # 그래프 영역 초기화(subplot 각각 필요)
+        df3 = [k[3] for k in self.df] # 2차원 리스트에서 rmsx 추출
+        ax1.plot(self.test_df5[10:, 0], label='temp5')
+        ax1.plot(self.pred_s_temp5, label='pred')
+        # npdf3 = np.array(df3)  # 넘파이 배열로 변환
+        # ax1.plot(npdf3[880:], label='rmsz')
+        ax1.legend()
+        
+        self.canvas5.draw()  # 그래프 다시 그리기   
+
+    def graph6(self) :
+        self.fig6.clear()  # 그래프 영역 초기화
+        
+        ax1 = self.fig6.add_subplot(111)  # 그래프 영역이 1개일 경우
+        ax1.clear() # 그래프 영역 초기화(subplot 각각 필요)
+        df3 = [k[3] for k in self.df] # 2차원 리스트에서 rmsx 추출
+        ax1.plot(self.test_df6[10:, 0], label='temp6')
+        ax1.plot(self.pred_s_temp6, label='pred')
+        # npdf3 = np.array(df3)  # 넘파이 배열로 변환
+        # ax1.plot(npdf3[880:], label='rmsz')
+        ax1.legend()
+        
+        self.canvas6.draw()  # 그래프 다시 그리기                   
         
     def timerHandler(self) :
         self.dataProcess()
@@ -285,6 +447,9 @@ class MyApp(QWidget) :  # 클래스 정의
         self.graph1()
         self.graph2()
         self.graph3()
+        self.graph4()
+        self.graph5()
+        self.graph6()
 
 if __name__ == '__main__' :  # 진입점 판단(운영체제에서 프로그램 호출)
     app = QApplication(sys.argv)
