@@ -10,3 +10,10 @@ Tools : <img src="https://img.shields.io/badge/SequelPro-485A62?style=plastic&lo
 : Check datas for temporary while program is running <br>
 insert data from csv file to db file <br>
 set db table name in tblorgdata, tbldata
+
+
+
+# ========= Day 02 ==========
+
+<h2> CREATE ADDITIONAL GRAPH LAYOUT </h2>
+: Create more additional graph layout for check graph 4-6
